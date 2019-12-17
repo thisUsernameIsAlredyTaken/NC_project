@@ -19,6 +19,6 @@ public class User {
     @Column(nullable = false)
     private String username;
 
-    @ManyToMany
-    private Set<UserMovie> movies;
+    @OneToMany
+    private Set<ListedMovie> movies;
 }

@@ -1,30 +1,20 @@
 package com.example.project.entity;
 
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.io.Serializable;
 import java.util.Date;
 
 @Data
 @NoArgsConstructor
 @Entity
-@IdClass(UserMovie.UserMovieId.class)
-public class UserMovie {
-
-    @Data
-    static class UserMovieId implements Serializable {
-        private User user;
-        private Movie movie;
-    }
+public class ListedMovie {
 
     @Id
-    @ManyToOne
-    private User user;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private Long id;
 
-    @Id
     @ManyToOne
     private Movie movie;
 
