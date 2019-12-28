@@ -1,9 +1,11 @@
-package com.example.project.entity;
+package com.example.project.model;
+
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+
 
 @Data
 @NoArgsConstructor
@@ -11,9 +13,10 @@ import javax.persistence.*;
 public class Genre {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.AUTO,
+                    generator = "sequence_genre")
     private Integer id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 }
