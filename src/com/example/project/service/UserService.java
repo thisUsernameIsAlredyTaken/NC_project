@@ -26,7 +26,7 @@ public class UserService {
         return optionalExistingUser;
     }
 
-    public Optional<User> getUserById(String id) {
+    public Optional<User> findUserById(String id) {
         if (id.length() > getMaxIdLength()) {
             return Optional.empty();
         }
@@ -34,16 +34,14 @@ public class UserService {
     }
 
     public Optional<User> updateUser(User movie) {
-        Optional<User> optionalOldUser = getUserById(movie.getId());
+        Optional<User> optionalOldUser = findUserById(movie.getId());
         optionalOldUser.ifPresent(oldMovie -> userRepos.save(movie));
         return optionalOldUser;
     }
 
     public Optional<User> deleteMovieById(String id) {
-        Optional<User> optionalDeletedUser = getUserById(id);
+        Optional<User> optionalDeletedUser = findUserById(id);
         optionalDeletedUser.ifPresent(userRepos::delete);
         return optionalDeletedUser;
     }
-
-    //
 }

@@ -14,8 +14,7 @@ import java.util.Date;
 public class ListedMovie {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO,
-                    generator = "sequence_listed_movie")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

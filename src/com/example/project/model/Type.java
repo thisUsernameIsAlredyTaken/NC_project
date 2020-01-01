@@ -12,8 +12,7 @@ import javax.persistence.*;
 public class Type {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO,
-                    generator = "sequence_type")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(nullable = false, unique = true)
