@@ -1,6 +1,8 @@
 package com.example.project.controller;
 
 
+import com.example.project.model.Genre;
+import com.example.project.model.ListedMovie;
 import com.example.project.model.Movie;
 import com.example.project.service.RecommendService;
 import lombok.AllArgsConstructor;
@@ -13,7 +15,7 @@ import java.util.List;
 
 @RestController
 @AllArgsConstructor
-public class RecommendController {
+public class RecommendsController {
 
     private final RecommendService recommendService;
 
@@ -27,5 +29,12 @@ public class RecommendController {
             response.setStatus(HttpServletResponse.SC_OK);
         }
         return recommends;
+    }
+
+    @GetMapping("user/{id}/favoritegenres")
+    public List<Genre> getFavoriteGenres(@PathVariable String id,
+                                         HttpServletResponse response) {
+        List<ListedMovie> listedMovies = recommendService.getUsersWatched(id);
+        return recommendService.getFavoriteGenres(listedMovies);
     }
 }

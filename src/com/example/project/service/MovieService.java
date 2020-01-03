@@ -17,6 +17,7 @@ import java.util.Optional;
 public class MovieService {
 
     private final MovieRepos movieRepos;
+    private final UserService userService;
 
     private int getMaxIdLength() {
         return movieRepos.getMaxIdLength();

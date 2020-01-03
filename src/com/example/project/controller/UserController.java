@@ -19,6 +19,7 @@ public class UserController {
     @PostMapping
     public void insertUser(@RequestBody User user,
                            HttpServletResponse response) {
+        System.out.println("==========================");
         Optional<User> optionalExistingUser = userService.addUser(user);
         if (optionalExistingUser.isPresent()) {
             response.setStatus(HttpServletResponse.SC_CONFLICT);
