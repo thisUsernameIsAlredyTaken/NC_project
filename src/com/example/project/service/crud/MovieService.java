@@ -1,4 +1,4 @@
-package com.example.project.service;
+package com.example.project.service.crud;
 
 
 import com.example.project.model.Movie;
@@ -17,7 +17,6 @@ import java.util.Optional;
 public class MovieService {
 
     private final MovieRepos movieRepos;
-    private final UserService userService;
 
     private int getMaxIdLength() {
         return movieRepos.getMaxIdLength();

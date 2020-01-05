@@ -3,7 +3,8 @@ package com.example.project.service;
 import com.example.project.model.*;
 import com.example.project.repos.GenreRepos;
 import com.example.project.repos.MovieRepos;
-import com.example.project.repos.UserRepos;
+import com.example.project.repos.TypeRepos;
+import com.example.project.service.crud.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,30 +16,19 @@ import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
-public class RecommendService {
+public class RecommendedService {
 
     private final UserService userService;
-    private final MovieService movieService;
-    private final UserRepos userRepos;
     private final MovieRepos movieRepos;
     private final GenreRepos genreRepos;
+    private final TypeRepos typeRepos;
 
-    private List<Movie> getDefaultRecommends(int pageSize, int page) {
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by("popularity").descending().and(Sort.by("id")));
+    private List<Movie> getDefaultRecommended(int pageSize) {
+        Pageable pageable = PageRequest.of(0, pageSize, Sort.by("popularity").descending().and(Sort.by("id")));
         return movieRepos.findAll(pageable).toList();
     }
 
-    private List<Movie> getWatched(User user) {
-        List<Movie> watchedMovies = new ArrayList<>();
-        user.getListedMovies().forEach(listedMovie -> {
-            if (listedMovie.getMark() > 0) {
-                watchedMovies.add(listedMovie.getMovie());
-            }
-        });
-        return watchedMovies;
-    }
-
-    public List<ListedMovie> getUsersWatched(String userId) {
+    public List<ListedMovie> getUsersWatchedMovies(String userId) {
         User user = userService.findUserById(userId).orElse(null);
         if (user == null) {
             return new ArrayList<>();
@@ -60,7 +50,6 @@ public class RecommendService {
     }
 
     public List<Genre> getFavoriteGenres(List<ListedMovie> watchedMovies) {
-        // TODO
         Map<Integer, Integer> favoriteGenres = new HashMap<>();
         watchedMovies.forEach(listedMovie -> listedMovie.getMovie().getGenres().forEach(genre -> {
             int genreId = genre.getId();
@@ -79,25 +68,54 @@ public class RecommendService {
         for (Integer genreId : favoriteGenresIdSorted) {
             Optional<Genre> optionalGenre = genreRepos.findById(genreId);
             if (!optionalGenre.isPresent()) {
-                throw new NoSuchElementException("Genre with id " + genreId + "doesn't found");
+                throw new NoSuchElementException("Genre with id " + genreId + " doesn't found");
             }
             favoriteGenresSorted.add(optionalGenre.get());
         }
         return favoriteGenresSorted;
     }
 
-    private List<Type> getFavoriteTypes(List<Movie> watchedMovies) {
-        // TODO: implement
-        return new ArrayList<>();
+    public List<Type> getFavoriteTypes(List<ListedMovie> watchedMovies) {
+        Map<Integer, Integer> favoriteTypes = new HashMap<>();
+        watchedMovies.forEach(listedMovie -> {
+            Type type = listedMovie.getMovie().getType();
+            int typeId = type.getId();
+            int counter = favoriteTypes.getOrDefault(typeId, 0);
+            counter += listedMovie.getMark();
+            favoriteTypes.put(typeId, counter);
+        });
+        List<Integer> favoriteTypeIdSorted = new ArrayList<>();
+        favoriteTypes.entrySet().stream()
+                .sorted(Map.Entry.<Integer, Integer>comparingByValue().reversed())
+                .collect(Collectors.toList())
+                .forEach(integerIntegerEntry ->
+                        favoriteTypeIdSorted.add(integerIntegerEntry.getKey()));
+        List<Type> favoriteTypesSorted = new ArrayList<>(favoriteTypeIdSorted.size());
+        for (Integer typeId : favoriteTypeIdSorted) {
+            Optional<Type> optionalType = typeRepos.findById(typeId);
+            if (!optionalType.isPresent()) {
+                throw new NoSuchElementException("Type with id " + typeId + " doesn't exists");
+            }
+            favoriteTypesSorted.add(optionalType.get());
+        }
+        return favoriteTypesSorted;
     }
 
-    public List<Movie> getRecommendsForUser(String userId) {
-        List<ListedMovie> watchedMovies = getUsersWatched(userId);
+    public List<Movie> getRecommendedByUserId(String userId) {
+        List<ListedMovie> watchedMovies = getUsersWatchedMovies(userId);
         if (watchedMovies.isEmpty()) {
-            return getDefaultRecommends(10, 0);
+            return getDefaultRecommended(10);
         }
+        List<Type> favoriteTypes = getFavoriteTypes(watchedMovies);
         List<Genre> favoriteGenres = getFavoriteGenres(watchedMovies);
-        // TODO: implement
-        return getDefaultRecommends(10, 0);
+        String typeIds = "";
+        String genreIds = "";
+        for (Genre genre : favoriteGenres) {
+            genreIds += genre.getId() + ",";
+        }
+        for (Type type : favoriteTypes) {
+            typeIds += type.getId() + ",";
+        }
+        return movieRepos.getRecommended(typeIds, genreIds, 10);
     }
 }

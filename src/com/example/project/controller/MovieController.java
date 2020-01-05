@@ -1,7 +1,7 @@
 package com.example.project.controller;
 
 import com.example.project.model.Movie;
-import com.example.project.service.MovieService;
+import com.example.project.service.crud.MovieService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +29,7 @@ public class MovieController {
     }
 
     @GetMapping("{id}")
-    public Movie findMovieById(@PathVariable String id,
+    public Optional<Movie> findMovieById(@PathVariable String id,
                                          HttpServletResponse response) {
         Optional<Movie> optionalMovie = movieService.findMovieById(id);
 
@@ -38,7 +38,7 @@ public class MovieController {
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-        return optionalMovie.orElse(null);
+        return optionalMovie;
     }
 
     @PutMapping
@@ -54,7 +54,7 @@ public class MovieController {
 
     @DeleteMapping("{id}")
     public void deleteMovieById(@PathVariable String id,
-                                           HttpServletResponse response) {
+                                HttpServletResponse response) {
         Optional<Movie> optionalDeletedMovie = movieService.deleteMovieById(id);
         if (optionalDeletedMovie.isPresent()) {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);

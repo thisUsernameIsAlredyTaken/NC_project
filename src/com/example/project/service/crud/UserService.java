@@ -1,4 +1,4 @@
-package com.example.project.service;
+package com.example.project.service.crud;
 
 import com.example.project.model.User;
 import com.example.project.repos.UserRepos;

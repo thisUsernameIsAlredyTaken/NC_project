@@ -1,7 +1,7 @@
 package com.example.project.controller;
 
 import com.example.project.model.User;
-import com.example.project.service.UserService;
+import com.example.project.service.crud.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +19,6 @@ public class UserController {
     @PostMapping
     public void insertUser(@RequestBody User user,
                            HttpServletResponse response) {
-        System.out.println("==========================");
         Optional<User> optionalExistingUser = userService.addUser(user);
         if (optionalExistingUser.isPresent()) {
             response.setStatus(HttpServletResponse.SC_CONFLICT);
@@ -29,7 +28,7 @@ public class UserController {
     }
 
     @GetMapping("{id}")
-    public User findUserById(@PathVariable String id,
+    public Optional<User> findUserById(@PathVariable String id,
                                        HttpServletResponse response) {
         Optional<User> optionalUser = userService.findUserById(id);
         if (optionalUser.isPresent()) {
@@ -37,7 +36,7 @@ public class UserController {
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-        return optionalUser.orElse(null);
+        return optionalUser;
     }
 
     @PutMapping
