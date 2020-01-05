@@ -29,10 +29,11 @@ public class RecommendedService {
     }
 
     public List<ListedMovie> getUsersWatchedMovies(String userId) {
-        User user = userService.findUserById(userId).orElse(null);
-        if (user == null) {
+        Optional<User> optionalUser = userService.findUserById(userId);
+        if (!optionalUser.isPresent()) {
             return new ArrayList<>();
         }
+        User user = optionalUser.get();
         List<ListedMovie> watchedMovies = new ArrayList<>();
         user.getListedMovies().forEach(listedMovie -> {
             if (listedMovie.getMark() > 0) {
@@ -42,7 +43,7 @@ public class RecommendedService {
         watchedMovies.sort((lm1, lm2) -> {
             int result = lm2.getMark() - lm1.getMark();
             if (result == 0) {
-                return lm2.getMovie().getPopularity() - lm1.getMovie().getPopularity();
+                result = lm2.getMovie().getPopularity() - lm1.getMovie().getPopularity();
             }
             return result;
         });
@@ -106,16 +107,40 @@ public class RecommendedService {
         if (watchedMovies.isEmpty()) {
             return getDefaultRecommended(10);
         }
+        List<String> watchedMovieIds = new ArrayList<>();
+        for (ListedMovie watchedMovie : watchedMovies) {
+            watchedMovieIds.add(watchedMovie.getMovie().getId());
+        }
         List<Type> favoriteTypes = getFavoriteTypes(watchedMovies);
+//        List<Type> favoriteTypes = new ArrayList<>();
+//        favoriteTypes.add(typeRepos.findById())
         List<Genre> favoriteGenres = getFavoriteGenres(watchedMovies);
+        if (favoriteTypes.size() > 3) {
+            favoriteTypes = favoriteTypes.subList(0, 3);
+        }
+        if (favoriteTypes.size() < 2) {
+            favoriteTypes.clear();
+            favoriteTypes.addAll(typeRepos.findAll());
+        }
+        if (favoriteGenres.size() > 3) {
+            favoriteGenres = favoriteGenres.subList(0, 3);
+        }
+        if (favoriteGenres.size() < 2) {
+            return getDefaultRecommended(0);
+        }
         String typeIds = "";
         String genreIds = "";
         for (Genre genre : favoriteGenres) {
             genreIds += genre.getId() + ",";
         }
+        if (genreIds.length() > 0)
+            genreIds = genreIds.substring(0, genreIds.length() - 1);
         for (Type type : favoriteTypes) {
             typeIds += type.getId() + ",";
         }
-        return movieRepos.getRecommended(typeIds, genreIds, 10);
+        if (typeIds.length() > 0)
+            typeIds = typeIds.substring(0, typeIds.length() - 1);
+        Pageable pageable = PageRequest.of(0, 10);
+        return movieRepos.getRecommended(typeIds, genreIds, watchedMovieIds, pageable);
     }
 }
