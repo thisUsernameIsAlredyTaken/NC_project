@@ -12,7 +12,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class SearchMovieService {
+public class SearchService {
 
     private final MovieRepos movieRepos;
 

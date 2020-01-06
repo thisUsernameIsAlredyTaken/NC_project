@@ -29,7 +29,7 @@ public class MovieController {
     }
 
     @GetMapping("{id}")
-    public Optional<Movie> findMovieById(@PathVariable String id,
+    public Movie findMovieById(@PathVariable String id,
                                          HttpServletResponse response) {
         Optional<Movie> optionalMovie = movieService.findMovieById(id);
 
@@ -38,7 +38,7 @@ public class MovieController {
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-        return optionalMovie;
+        return optionalMovie.orElse(null);
     }
 
     @PutMapping

@@ -28,15 +28,15 @@ public class UserController {
     }
 
     @GetMapping("{id}")
-    public Optional<User> findUserById(@PathVariable String id,
-                                       HttpServletResponse response) {
+    public User findUserById(@PathVariable String id,
+                             HttpServletResponse response) {
         Optional<User> optionalUser = userService.findUserById(id);
         if (optionalUser.isPresent()) {
             response.setStatus(HttpServletResponse.SC_OK);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-        return optionalUser;
+        return optionalUser.orElse(null);
     }
 
     @PutMapping
