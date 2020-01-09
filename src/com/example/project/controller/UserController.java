@@ -1,66 +1,119 @@
 package com.example.project.controller;
 
-import com.example.project.model.User;
-import com.example.project.service.crud.UserService;
+import com.example.project.entiy.Movie;
+import com.example.project.entiy.PlannedMovie;
+import com.example.project.entiy.User;
+import com.example.project.entiy.WatchedMovie;
+import com.example.project.service.UserActionService;
+import com.example.project.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.util.Date;
+import java.util.List;
 
-@AllArgsConstructor
 @RestController
-@RequestMapping("/user")
+@RequestMapping("user")
+@AllArgsConstructor
 public class UserController {
 
     private final UserService userService;
+    private final UserActionService userActionService;
 
-    // CRUD
     @PostMapping
-    public void insertUser(@RequestBody User user,
-                           HttpServletResponse response) {
-        Optional<User> optionalExistingUser = userService.addUser(user);
-        if (optionalExistingUser.isPresent()) {
-            response.setStatus(HttpServletResponse.SC_CONFLICT);
-        } else {
+    public void create(@RequestBody User user,
+                       HttpServletResponse response) {
+        if (userService.add(user)) {
             response.setStatus(HttpServletResponse.SC_CREATED);
+        } else {
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
         }
     }
 
-    @GetMapping("{id}")
-    public User findUserById(@PathVariable String id,
-                             HttpServletResponse response) {
-        Optional<User> optionalUser = userService.findUserById(id);
-        if (optionalUser.isPresent()) {
-            response.setStatus(HttpServletResponse.SC_OK);
+    @GetMapping("p/{id}")
+    public User.CoreInfo read(@PathVariable String id,
+                              HttpServletResponse response) {
+        User.CoreInfo user = userService.findCoreById(id);
+        if (user == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        return user;
+    }
+
+    @PutMapping("p/{id}")
+    public void update(@PathVariable String id,
+                       @RequestBody User user,
+                       HttpServletResponse response) {
+        if (userService.updateById(id, user)) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-        return optionalUser.orElse(null);
     }
 
-    @PutMapping
-    public void updateUser(@RequestBody User user,
+    @DeleteMapping("p/{id}")
+    public void delete(@PathVariable String id,
+                       HttpServletResponse response) {
+        if (userService.deleteById(id)) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    @GetMapping("p/{id}/watched")
+    public List<WatchedMovie> getWatched(@PathVariable String id,
+                                         HttpServletResponse response) {
+        List<WatchedMovie> watchedMovies = userService.findWatchedMovies(id);
+        if (watchedMovies == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        return watchedMovies;
+    }
+
+    @GetMapping("p/{id}/planned")
+    public List<PlannedMovie> getPlanned(@PathVariable String id,
+                                         HttpServletResponse response) {
+        List<PlannedMovie> plannedMovies = userService.findPlannedMovies(id);
+        if (plannedMovies == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        return plannedMovies;
+    }
+
+    @PatchMapping("p/{userId}/planned")
+    public void addPlanned(@PathVariable String userId,
+                           @RequestParam String movieId,
                            HttpServletResponse response) {
-        Optional<User> optionOldUser = userService.updateUser(user);
-        if (optionOldUser.isPresent()) {
+        if (userActionService.addPlanned(userId, movieId)) {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
-    @DeleteMapping("{id}")
-    public void deleteUserById(@PathVariable String id,
-                               HttpServletResponse response) {
-        Optional<User> optionalDeletedUser = userService.deleteMovieById(id);
-        if (optionalDeletedUser.isPresent()) {
+    @PatchMapping("p/{userId}/watched")
+    public void addWatched(@PathVariable String userId,
+                           @RequestParam String movieId,
+                           @RequestParam(required = false) Integer rating,
+                           HttpServletResponse response) {
+        if (userActionService.addWatched(userId, movieId, rating)) {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
-    //
-
+    @DeleteMapping("p/{userId}/listed/{movieId}")
+    public void deleteListed(@PathVariable String userId,
+                             @PathVariable String movieId,
+                             HttpServletResponse response) {
+        if (userActionService.deleteListed(userId, movieId)) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
 }

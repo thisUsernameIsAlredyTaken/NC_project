@@ -1,68 +1,57 @@
 package com.example.project.controller;
 
-import com.example.project.model.Movie;
-import com.example.project.service.crud.MovieService;
+import com.example.project.entiy.Movie;
+import com.example.project.service.MovieService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.Optional;
 
-@AllArgsConstructor
 @RestController
-@RequestMapping("/movie")
+@AllArgsConstructor
+@RequestMapping("movie")
 public class MovieController {
 
     private final MovieService movieService;
 
-    // CRUD
     @PostMapping
-    public void insertMovie(@RequestBody Movie movie,
-                            HttpServletResponse response) {
-        System.out.println("movie = " + movie);
-        Optional<Movie> optionalExistingMovie = movieService.addMovie(movie);
-        if (optionalExistingMovie.isPresent()) {
-            response.setStatus(HttpServletResponse.SC_CONFLICT);
-        } else {
+    public void create(@RequestBody Movie movie,
+                       HttpServletResponse response) {
+        if (movieService.add(movie)) {
             response.setStatus(HttpServletResponse.SC_CREATED);
+        } else {
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
         }
     }
 
-    @GetMapping("{id}")
-    public Movie findMovieById(@PathVariable String id,
-                                         HttpServletResponse response) {
-        Optional<Movie> optionalMovie = movieService.findMovieById(id);
-
-        if (optionalMovie.isPresent()) {
-            response.setStatus(HttpServletResponse.SC_OK);
-        } else {
+    @GetMapping("p/{id}")
+    public Movie read(@PathVariable String id,
+                      HttpServletResponse response) {
+        Movie movie = movieService.findById(id);
+        if (movie == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-        return optionalMovie.orElse(null);
+        return movie;
     }
 
-    @PutMapping
-    public void updateMovie(@RequestBody Movie movie,
-                            HttpServletResponse response) {
-        Optional<Movie> movieOldOptional = movieService.updateMovie(movie);
-        if (movieOldOptional.isPresent()) {
+    @PutMapping("p/{id}")
+    public void update(@PathVariable String id,
+                       @RequestBody Movie movie,
+                       HttpServletResponse response) {
+        if (movieService.updateById(id, movie)) {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
-    @DeleteMapping("{id}")
-    public void deleteMovieById(@PathVariable String id,
-                                HttpServletResponse response) {
-        Optional<Movie> optionalDeletedMovie = movieService.deleteMovieById(id);
-        if (optionalDeletedMovie.isPresent()) {
+    @DeleteMapping("p/{id}")
+    public void delete(@PathVariable String id,
+                       HttpServletResponse response) {
+        if (movieService.deleteById(id)) {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
-
-    //
-
 }
