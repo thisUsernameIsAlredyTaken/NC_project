@@ -16,11 +16,12 @@ public class UserService {
     private final UserRepo userRepo;
 
     public boolean add(User user) {
-        if (user == null || userRepo.existsById(user.getId())) {
+        if (user == null || userRepo.existsById(user.getId()) ||
+                userRepo.existsByUsername(user.getUsername())) {
             return false;
         }
         userRepo.save(user);
-        return false;
+        return true;
     }
 
     public User.CoreInfo findCoreById(String id) {
@@ -46,6 +47,14 @@ public class UserService {
 
     public User findById(String id) {
         return userRepo.findById(id).orElse(null);
+    }
+
+    public User.CoreInfo findCoreByUsername(String username) {
+        return userRepo.findCoreByUsername(username).orElse(null);
+    }
+
+    public User findByUsername(String username) {
+        return userRepo.findByUsername(username).orElse(null);
     }
 
     public List<PlannedMovie> findPlannedMovies(String id) {

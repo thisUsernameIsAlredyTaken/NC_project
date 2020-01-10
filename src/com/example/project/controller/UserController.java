@@ -1,6 +1,5 @@
 package com.example.project.controller;
 
-import com.example.project.entiy.Movie;
 import com.example.project.entiy.PlannedMovie;
 import com.example.project.entiy.User;
 import com.example.project.entiy.WatchedMovie;
@@ -8,10 +7,9 @@ import com.example.project.service.UserActionService;
 import com.example.project.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.servlet.http.HttpServletResponse;
-import java.time.LocalDate;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -61,6 +59,22 @@ public class UserController {
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
+    }
+
+    @GetMapping("p/{id}/stat")
+    public User.Stat getStatistic(@PathVariable String id,
+                                  HttpServletResponse response) {
+        throw new NotImplementedException();
+    }
+
+    @GetMapping
+    public User.CoreInfo findByUsername(@RequestParam String username,
+                                        HttpServletResponse response) {
+        User.CoreInfo user = userService.findCoreByUsername(username);
+        if (user == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        return user;
     }
 
     @GetMapping("p/{id}/watched")

@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
+import java.util.List;
 
 @RestController
 @AllArgsConstructor
@@ -53,5 +54,12 @@ public class MovieController {
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
+    }
+
+    @GetMapping("search")
+    public List<Movie> search(@RequestParam String pattern,
+                              @RequestParam(defaultValue = "0") int page,
+                              @RequestParam(defaultValue = "10") int pageSize) {
+        return movieService.search(pattern, page, pageSize);
     }
 }
