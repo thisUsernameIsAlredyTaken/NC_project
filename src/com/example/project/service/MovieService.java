@@ -17,7 +17,7 @@ public class MovieService {
     private final MovieRepo movieRepo;
 
     public boolean add(Movie movie) {
-        if (movie == null || movieRepo.existsById(movie.getId())) {
+        if (movie == null || isExistsById(movie.getId())) {
             return false;
         }
         movieRepo.save(movie);
@@ -29,7 +29,7 @@ public class MovieService {
     }
 
     public boolean updateById(String id, Movie movie) {
-        if (id == null || movie == null || !movieRepo.existsById(id)) {
+        if (id == null || movie == null || !isExistsById(id)) {
             return false;
         }
         movie.setId(id);
@@ -37,8 +37,15 @@ public class MovieService {
         return true;
     }
 
+    public boolean isExistsById(String id) {
+        if (id == null || id.length() != Movie.MAX_ID_LENGTH) {
+            return false;
+        }
+        return movieRepo.existsById(id);
+    }
+
     public boolean deleteById(String id) {
-        if (id == null || !movieRepo.existsById(id)) {
+        if (id == null || !isExistsById(id)) {
             return false;
         }
         movieRepo.deleteById(id);
@@ -49,7 +56,7 @@ public class MovieService {
         Pageable pageable = PageRequest.of(page, pageSize,
                 Sort.by("popularity").descending()
                         .and(Sort.by("id")));
-        return movieRepo.search(
-                pattern.toLowerCase(), pageable);
+        pattern = String.format("%%%s%%", pattern.toLowerCase());
+        return movieRepo.search(pattern, pageable);
     }
 }

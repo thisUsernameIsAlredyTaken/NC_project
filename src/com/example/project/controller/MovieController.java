@@ -3,8 +3,10 @@ package com.example.project.controller;
 import com.example.project.entiy.Movie;
 import com.example.project.service.MovieService;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
@@ -27,11 +29,15 @@ public class MovieController {
 
     @GetMapping("p/{id}")
     public Movie read(@PathVariable String id,
-                      HttpServletResponse response) {
+                      HttpServletResponse response,
+                      HttpServletRequest request) {
         Movie movie = movieService.findById(id);
         if (movie == null) {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
+        System.out.println(request.getUserPrincipal());
+        System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        System.out.println();
         return movie;
     }
 

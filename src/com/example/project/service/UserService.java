@@ -16,8 +16,8 @@ public class UserService {
     private final UserRepo userRepo;
 
     public boolean add(User user) {
-        if (user == null || userRepo.existsById(user.getId()) ||
-                userRepo.existsByUsername(user.getUsername())) {
+        if (user == null || isExistsById(user.getId()) ||
+                isExistsByUsername(user.getUsername())) {
             return false;
         }
         userRepo.save(user);
@@ -29,7 +29,7 @@ public class UserService {
     }
 
     public boolean updateById(String id, User user) {
-        if (id == null || user == null || !userRepo.existsById(id)) {
+        if (id == null || user == null || !isExistsById(id)) {
             return false;
         }
         user.setId(id);
@@ -38,11 +38,25 @@ public class UserService {
     }
 
     public boolean deleteById(String id) {
-        if (id == null || !userRepo.existsById(id)) {
+        if (id == null || !isExistsById(id)) {
             return false;
         }
         userRepo.deleteById(id);
         return true;
+    }
+
+    public boolean isExistsById(String id) {
+        if (id == null || id.length() != User.MAX_ID_LENGTH) {
+            return false;
+        }
+        return userRepo.existsById(id);
+    }
+
+    public boolean isExistsByUsername(String username) {
+        if (username == null || username.length() > User.MAX_USERNAME_LENGTH) {
+            return false;
+        }
+        return userRepo.existsByUsername(username);
     }
 
     public User findById(String id) {
@@ -50,6 +64,7 @@ public class UserService {
     }
 
     public User.CoreInfo findCoreByUsername(String username) {
+        System.out.println("UserService.findCoreByUsername");
         return userRepo.findCoreByUsername(username).orElse(null);
     }
 

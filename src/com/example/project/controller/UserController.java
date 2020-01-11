@@ -6,9 +6,13 @@ import com.example.project.entiy.WatchedMovie;
 import com.example.project.service.UserActionService;
 import com.example.project.service.UserService;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
@@ -67,7 +71,7 @@ public class UserController {
         throw new NotImplementedException();
     }
 
-    @GetMapping
+    @GetMapping("find")
     public User.CoreInfo findByUsername(@RequestParam String username,
                                         HttpServletResponse response) {
         User.CoreInfo user = userService.findCoreByUsername(username);
@@ -128,6 +132,86 @@ public class UserController {
             response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    @GetMapping("me")
+    public User.CoreInfo readMe(HttpServletRequest request) {
+        UsernamePasswordAuthenticationToken principal = (UsernamePasswordAuthenticationToken) request.getUserPrincipal();
+        System.out.println(request.getUserPrincipal());
+        System.out.println(principal);
+        System.out.println();
+
+        return userService.findCoreByUsername(request.getUserPrincipal().getName());
+    }
+
+    @PutMapping("me")
+    public void updateMe(@RequestBody User user,
+                         HttpServletRequest request,
+                         HttpServletResponse response) {
+        String id = userService.findCoreByUsername(request.getUserPrincipal().getName()).getUsername();
+        if (userService.updateById(id, user)) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } else {
+            response.setStatus(HttpServletResponse.SC_CONFLICT);
+        }
+    }
+
+    @GetMapping("me/watched")
+    public List<WatchedMovie> getMyWatched(HttpServletRequest request) {
+        User user = userService.findByUsername(request.getUserPrincipal().getName());
+        return userService.findWatchedMovies(user);
+    }
+
+    @GetMapping("me/planned")
+    public List<PlannedMovie> getMyPlanned(HttpServletRequest request) {
+        User user = userService.findByUsername(request.getUserPrincipal().getName());
+        return userService.findPlannedMovies(user);
+    }
+
+    @PatchMapping("me/planned")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addMyPlanned(@RequestParam String movieId,
+                             HttpServletRequest request) {
+        String id = userService.findCoreByUsername(request.getUserPrincipal().getName()).getId();
+        userActionService.addPlanned(id, movieId);
+    }
+
+    @PatchMapping("me/watched")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void addMyWatched(@RequestParam String movieId,
+                             @RequestParam(required = false) Integer rating,
+                             HttpServletRequest request) {
+        String id = userService.findCoreByUsername(request.getUserPrincipal().getName()).getId();
+        userActionService.addWatched(id, movieId, rating);
+    }
+
+    @DeleteMapping("me/listed/{movieId}")
+    public void deleteMyListed(@PathVariable String movieId,
+                               HttpServletRequest request,
+                               HttpServletResponse response) {
+        String id = userService.findCoreByUsername(request.getUserPrincipal().getName()).getId();
+        if (userActionService.deleteListed(id, movieId)) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    private User requestUser(String id, HttpServletRequest request, HttpServletResponse response) {
+        UsernamePasswordAuthenticationToken userPrincipal =
+                (UsernamePasswordAuthenticationToken) request.getUserPrincipal();
+        if (userPrincipal == null) {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return null;
+        } else {
+            User user = userService.findByUsername(userPrincipal.getName());
+            if (!userPrincipal.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")) &&
+                    !id.equals(user.getId())) {
+                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+                return null;
+            }
+            return user;
         }
     }
 }
