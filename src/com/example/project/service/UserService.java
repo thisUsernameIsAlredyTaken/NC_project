@@ -1,5 +1,6 @@
 package com.example.project.service;
 
+import com.example.project.entiy.Movie;
 import com.example.project.entiy.PlannedMovie;
 import com.example.project.entiy.User;
 import com.example.project.entiy.WatchedMovie;
@@ -64,8 +65,11 @@ public class UserService {
     }
 
     public User.CoreInfo findCoreByUsername(String username) {
-        System.out.println("UserService.findCoreByUsername");
         return userRepo.findCoreByUsername(username).orElse(null);
+    }
+
+    public User.Credentials findCredentialsByUsername(String username) {
+        return userRepo.findCredentialsByUsername(username).orElse(null);
     }
 
     public User findByUsername(String username) {

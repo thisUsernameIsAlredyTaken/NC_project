@@ -4,7 +4,9 @@ import com.example.project.entiy.Movie;
 import com.example.project.entiy.PlannedMovie;
 import com.example.project.entiy.User;
 import com.example.project.entiy.WatchedMovie;
+import com.example.project.repository.MovieRepo;
 import com.example.project.repository.PlannedMovieRepo;
+import com.example.project.repository.UserRepo;
 import com.example.project.repository.WatchedMovieRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class UserActionService {
 
     private final UserService userService;
     private final MovieService movieService;
+    private final MovieRepo movieRepo;
     private final WatchedMovieRepo watchedMovieRepo;
     private final PlannedMovieRepo plannedMovieRepo;
 
@@ -122,5 +125,15 @@ public class UserActionService {
             }
         }
         return false;
+    }
+
+    public List<Movie> getRecommend(String userId) {
+        List<WatchedMovie> watchedMovies = userService.findWatchedMovies(userId);
+        if (watchedMovies == null) {
+            return null;
+        } else if (watchedMovies.size() < 8) {
+            return movieService.getDefaultRecommend();
+        }
+        return movieRepo.getRecommendByUserId(userId);
     }
 }

@@ -1,5 +1,6 @@
 package com.example.project.controller;
 
+import com.example.project.entiy.Movie;
 import com.example.project.entiy.PlannedMovie;
 import com.example.project.entiy.User;
 import com.example.project.entiy.WatchedMovie;
@@ -63,12 +64,6 @@ public class UserController {
         } else {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
-    }
-
-    @GetMapping("p/{id}/stat")
-    public User.Stat getStatistic(@PathVariable String id,
-                                  HttpServletResponse response) {
-        throw new NotImplementedException();
     }
 
     @GetMapping("find")
@@ -135,12 +130,30 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("p/{userId}/watched/{movieId}")
+    public void deleteWatched(@PathVariable String userId,
+                              @PathVariable String movieId,
+                              HttpServletResponse response) {
+        if (userActionService.deleteWatched(userId, movieId)) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+        } else {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+    }
+
+    @GetMapping("p/{userId}/recommend")
+    public List<Movie> getRecommend(@PathVariable String userId,
+                                    HttpServletResponse response) {
+        List<Movie> recommend = userActionService.getRecommend(userId);
+        if (recommend == null) {
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        }
+        return recommend;
+    }
+
     @GetMapping("me")
     public User.CoreInfo readMe(HttpServletRequest request) {
         UsernamePasswordAuthenticationToken principal = (UsernamePasswordAuthenticationToken) request.getUserPrincipal();
-        System.out.println(request.getUserPrincipal());
-        System.out.println(principal);
-        System.out.println();
 
         return userService.findCoreByUsername(request.getUserPrincipal().getName());
     }
@@ -197,21 +210,21 @@ public class UserController {
             response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
     }
-
-    private User requestUser(String id, HttpServletRequest request, HttpServletResponse response) {
-        UsernamePasswordAuthenticationToken userPrincipal =
-                (UsernamePasswordAuthenticationToken) request.getUserPrincipal();
-        if (userPrincipal == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            return null;
+    @DeleteMapping("me/watched/{movieId}")
+    public void deleteMyWatched(@PathVariable String movieId,
+                                HttpServletRequest request,
+                                HttpServletResponse response) {
+        String id = userService.findCoreByUsername(request.getUserPrincipal().getName()).getId();
+        if (userActionService.deleteWatched(id, movieId)) {
+            response.setStatus(HttpServletResponse.SC_NO_CONTENT);
         } else {
-            User user = userService.findByUsername(userPrincipal.getName());
-            if (!userPrincipal.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN")) &&
-                    !id.equals(user.getId())) {
-                response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-                return null;
-            }
-            return user;
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
         }
+    }
+
+    @GetMapping("me/recommend")
+    public List<Movie> getRecommendForMe(HttpServletRequest request) {
+        String id = userService.findCoreByUsername(request.getUserPrincipal().getName()).getId();
+        return userActionService.getRecommend(id);
     }
 }

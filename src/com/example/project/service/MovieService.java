@@ -1,6 +1,7 @@
 package com.example.project.service;
 
 import com.example.project.entiy.Movie;
+import com.example.project.entiy.User;
 import com.example.project.repository.MovieRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.PageRequest;
@@ -58,5 +59,9 @@ public class MovieService {
                         .and(Sort.by("id")));
         pattern = String.format("%%%s%%", pattern.toLowerCase());
         return movieRepo.search(pattern, pageable);
+    }
+
+    public List<Movie> getDefaultRecommend() {
+        return movieRepo.getDefaultRecommend();
     }
 }

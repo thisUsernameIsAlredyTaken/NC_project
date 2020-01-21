@@ -21,26 +21,17 @@ public class User implements Serializable {
     public static final int MAX_USERNAME_LENGTH = 64;
     public static final int MAX_ID_LENGTH = 11;
 
+    public interface Credentials extends Serializable {
+        String getUsername();
+        String getPassword();
+        List<Role> getRoles();
+    }
+
     public interface CoreInfo extends Serializable {
         String getId();
         String getUsername();
         Date getRegisterDate();
         List<Role> getRoles();
-        String getPassword();
-        default String _toString1() {
-            return "User{" +
-                    "id='" + getId() + '\'' +
-                    ", registerDate=" + getRegisterDate() +
-                    ", username='" + getUsername() + '\'' +
-                    ", password='" + getPassword() + '\'' +
-                    ", roles=" + getRoles() +
-                    '}';
-        }
-    }
-
-    @Data
-    public static class Stat implements Serializable {
-        private List<Genre> favoriteGenres;
     }
 
     @Id
