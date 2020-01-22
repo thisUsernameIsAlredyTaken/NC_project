@@ -4,12 +4,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.Date;
 
 @Entity
 @Data
 @NoArgsConstructor
 public class PlannedMovie {
+
+    public interface NoUser extends Serializable {
+        Long getId();
+        Date getDate();
+        Movie getMovie();
+    }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

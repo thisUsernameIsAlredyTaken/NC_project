@@ -17,7 +17,6 @@ public interface MovieRepo extends JpaRepository<Movie, String> {
 
     List<Movie> findByTitleContainsIgnoreCase(String pattern, Pageable pageable);
 
-
     @Query(nativeQuery = true, value = "" +
             "select m.* " +
             "    from ( " +

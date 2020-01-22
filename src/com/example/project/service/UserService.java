@@ -1,10 +1,11 @@
 package com.example.project.service;
 
-import com.example.project.entiy.Movie;
 import com.example.project.entiy.PlannedMovie;
 import com.example.project.entiy.User;
 import com.example.project.entiy.WatchedMovie;
+import com.example.project.repository.PlannedMovieRepo;
 import com.example.project.repository.UserRepo;
+import com.example.project.repository.WatchedMovieRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,8 @@ import java.util.List;
 public class UserService {
 
     private final UserRepo userRepo;
+    private final WatchedMovieRepo watchedMovieRepo;
+    private final PlannedMovieRepo plannedMovieRepo;
 
     public boolean add(User user) {
         if (user == null || isExistsById(user.getId()) ||
@@ -76,25 +79,19 @@ public class UserService {
         return userRepo.findByUsername(username).orElse(null);
     }
 
-    public List<PlannedMovie> findPlannedMovies(String id) {
-        return findPlannedMovies(findById(id));
+    public List<PlannedMovie.NoUser> findPlannedById(String userId) {
+        return plannedMovieRepo.findByUserId(userId);
     }
 
-    public List<PlannedMovie> findPlannedMovies(User user) {
-        if (user == null) {
-            return null;
-        }
-        return user.getPlannedMovies();
+    public List<PlannedMovie.NoUser> findPlannedByUsername(String username) {
+        return plannedMovieRepo.findByUsername(username);
     }
 
-    public List<WatchedMovie> findWatchedMovies(String id) {
-        return findWatchedMovies(findById(id));
+    public List<WatchedMovie.NoUser> findWatchedById(String userId) {
+        return watchedMovieRepo.findByUserId(userId);
     }
 
-    public List<WatchedMovie> findWatchedMovies(User user) {
-        if (user == null) {
-            return null;
-        }
-        return user.getWatchedMovies();
+    public List<WatchedMovie.NoUser> findWatchedByUsername(String username) {
+        return watchedMovieRepo.findByUsername(username);
     }
 }

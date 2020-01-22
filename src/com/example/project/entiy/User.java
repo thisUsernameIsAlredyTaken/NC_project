@@ -2,10 +2,6 @@ package com.example.project.entiy;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.ManyToAny;
-import org.springframework.data.repository.cdi.Eager;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -23,14 +19,19 @@ public class User implements Serializable {
 
     public interface Credentials extends Serializable {
         String getUsername();
+
         String getPassword();
+
         List<Role> getRoles();
     }
 
     public interface CoreInfo extends Serializable {
         String getId();
+
         String getUsername();
+
         Date getRegisterDate();
+
         List<Role> getRoles();
     }
 

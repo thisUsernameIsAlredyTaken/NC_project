@@ -6,7 +6,6 @@ import com.example.project.entiy.User;
 import com.example.project.entiy.WatchedMovie;
 import com.example.project.repository.MovieRepo;
 import com.example.project.repository.PlannedMovieRepo;
-import com.example.project.repository.UserRepo;
 import com.example.project.repository.WatchedMovieRepo;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,34 +23,12 @@ public class UserActionService {
     private final WatchedMovieRepo watchedMovieRepo;
     private final PlannedMovieRepo plannedMovieRepo;
 
-    public String movieStatus(String userId, String movieId) {
-        return movieStatus(userService.findById(userId), movieId);
-    }
-
-    public String movieStatus(User user, String movieId) {
-        if (user == null || movieId == null) {
-            return "none";
-        }
-        for (WatchedMovie watchedMovie : user.getWatchedMovies()) {
-            if (movieId.equals(watchedMovie.getMovie().getId())) {
-                return "watched";
-            }
-        }
-        for (PlannedMovie plannedMovie : user.getPlannedMovies()) {
-            if (movieId.equals(plannedMovie.getMovie().getId())) {
-                return "planned";
-            }
-        }
-        return "none";
-    }
-
-    public boolean addPlanned(String userId, String movieId) {
+    public boolean addPlanned(User user, String movieId) {
         Movie movie = movieService.findById(movieId);
-        User user = userService.findById(userId);
         if (movie == null || user == null) {
             return false;
         }
-        deleteListed(user, movieId);
+        deleteListedById(user.getId(), movieId);
         PlannedMovie plannedMovie = new PlannedMovie();
         plannedMovie.setMovie(movie);
         plannedMovie.setUser(user);
@@ -61,16 +38,23 @@ public class UserActionService {
         return true;
     }
 
-    public boolean addWatched(String userId, String movieId, Integer rating) {
+    public boolean addPlannedById(String userId, String movieId) {
+        return addPlanned(userService.findById(userId), movieId);
+    }
+
+    public boolean addPlannedByUsername(String username, String movieId) {
+        return addPlanned(userService.findByUsername(username), movieId);
+    }
+
+    public boolean addWatched(User user, String movieId, Integer rating) {
         if (rating < 1 || rating > 10) {
             return false;
         }
-        User user = userService.findById(userId);
         Movie movie = movieService.findById(movieId);
         if (user == null || movie == null) {
             return false;
         }
-        deleteListed(user, movieId);
+        deleteListedById(user.getId(), movieId);
         WatchedMovie watchedMovie = new WatchedMovie();
         watchedMovie.setUser(user);
         watchedMovie.setMovie(movie);
@@ -81,44 +65,26 @@ public class UserActionService {
         return true;
     }
 
-    public boolean deleteListed(String userId, String movieId) {
-        return deleteListed(userService.findById(userId), movieId);
+    public boolean addWatchedById(String userId, String movieId, Integer rating) {
+        return addWatched(userService.findById(userId), movieId, rating);
     }
 
-    public boolean deleteListed(User user, String movieId) {
-        if (user == null) {
-            return false;
-        }
-        return deleteWatched(user.getWatchedMovies(), movieId) ||
-                deletePlanned(user.getPlannedMovies(), movieId);
+    public boolean addWatchedByUsername(String username, String movieId, Integer rating) {
+        return addWatched(userService.findByUsername(username), movieId, rating);
     }
 
-    public boolean deleteWatched(String userId, String movieId) {
-        return deleteWatched(userService.findWatchedMovies(userId), movieId);
+    public boolean deleteListedById(String userId, String movieId) {
+        return deleteWatchedById(userId, movieId) ||
+                deletePlannedById(userId, movieId);
     }
 
-    public boolean deleteWatched(List<WatchedMovie> watchedMovies, String movieId) {
-        if (watchedMovies == null || movieId == null) {
-            return false;
-        }
-        for (WatchedMovie watchedMovie : watchedMovies) {
-            if (movieId.equals(watchedMovie.getMovie().getId())) {
-                watchedMovieRepo.deleteById(watchedMovie.getId());
-                return true;
-            }
-        }
-        return false;
+    public boolean deleteListedByUsername(String username, String movieId) {
+        return deleteWatchedByUsername(username, movieId) ||
+                deletePlannedByUsername(username, movieId);
     }
 
-    public boolean deletePlanned(String userId, String movieId) {
-        return deletePlanned(userService.findPlannedMovies(userId), movieId);
-    }
-
-    public boolean deletePlanned(List<PlannedMovie> plannedMovies, String movieId) {
-        if (plannedMovies == null || movieId == null) {
-            return false;
-        }
-        for (PlannedMovie plannedMovie : plannedMovies) {
+    public boolean deletePlanned(List<PlannedMovie.NoUser> plannedMovies, String movieId) {
+        for (PlannedMovie.NoUser plannedMovie : plannedMovies) {
             if (movieId.equals(plannedMovie.getMovie().getId())) {
                 plannedMovieRepo.deleteById(plannedMovie.getId());
                 return true;
@@ -127,13 +93,46 @@ public class UserActionService {
         return false;
     }
 
-    public List<Movie> getRecommend(String userId) {
-        List<WatchedMovie> watchedMovies = userService.findWatchedMovies(userId);
-        if (watchedMovies == null) {
+    public boolean deletePlannedById(String userId, String movieId) {
+        return deletePlanned(plannedMovieRepo.findByUserId(userId), movieId);
+    }
+
+    public boolean deletePlannedByUsername(String username, String movieId) {
+        return deletePlanned(plannedMovieRepo.findByUsername(username), movieId);
+    }
+
+    public boolean deleteWatched(List<WatchedMovie.NoUser> watchedMovies, String movieId) {
+        for (WatchedMovie.NoUser watchedMovie : watchedMovies) {
+            if (movieId.equals(watchedMovie.getMovie().getId())) {
+                watchedMovieRepo.deleteById(watchedMovie.getId());
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean deleteWatchedById(String userId, String movieId) {
+        return deleteWatched(watchedMovieRepo.findByUserId(userId), movieId);
+    }
+
+    public boolean deleteWatchedByUsername(String username, String movieId) {
+        return deleteWatched(watchedMovieRepo.findByUsername(username), movieId);
+    }
+
+    public List<Movie> getRecommendById(String userId) {
+        if (!userService.isExistsById(userId)) {
             return null;
-        } else if (watchedMovies.size() < 8) {
+        } else if (watchedMovieRepo.countById(userId) < 8) {
             return movieService.getDefaultRecommend();
         }
         return movieRepo.getRecommendByUserId(userId);
+    }
+
+    public List<Movie> getRecommendByUsername(String username) {
+        User user = userService.findByUsername(username);
+        if (user == null) {
+            return null;
+        }
+        return getRecommendById(user.getId());
     }
 }
